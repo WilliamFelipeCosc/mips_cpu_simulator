@@ -1,0 +1,18 @@
+https://dannyqiu.me/mips-interpreter/
+https://www.youtube.com/watch?v=vLUjaJ3TK14
+
+https://i.ytimg.com/vi/SFYhLRx3Hds/hqdefault.jpg
+https://mips-converter.jeffsieu.com/
+https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf
+
+I - ADDI
+I - LI
+
+R - ADDU
+R - SUBU
+R - MULTU
+R - DIVU
+R - REMU
+R - MOVE
+
+J - J (Label???)
