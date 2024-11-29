@@ -5,12 +5,15 @@ https://i.ytimg.com/vi/SFYhLRx3Hds/hqdefault.jpg
 https://mips-converter.jeffsieu.com/
 https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf
 
+https://www.reddit.com/r/RISCV/comments/13rcn8e/when_to_use_j_jal_jr_jalr/?tl=pt-br&rdt=45352
+
 I - ADDI
-I - LI
+I - ANDI
 
 R - ADDU
 R - SUBU
-R - MULTU
+R - MULT
+R - MFLO
 R - DIVU
 R - REMU
 R - MOVE
