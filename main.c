@@ -27,16 +27,19 @@ typedef struct
 typedef struct
 {
   int location;
-  int code;
+  unsigned int code;
 } InstructionLocation;
 
 typedef struct
 {
-  int lastUsedAddress;
+  int nextAvailableAddress;
+  int size;
   InstructionLocation ram[MEMORY_LIMIT];
 } Memory;
 
+void initMemory(Memory *memory);
 void addInstruction(Memory *memory, unsigned int binary);
+void executeAllInstructions(Memory *memory, Processor *cpu);
 void decodeInstruction(unsigned int binary, Instruction *instr);
 void executeInstruction(Instruction instr, Processor *cpu);
 void executeRType(Instruction instr, Processor *cpu);
@@ -48,51 +51,98 @@ void printRegisters(Processor cpu);
 int main()
 {
   Processor cpu = {{0}}; // Inicializa todos os registradores com 0
-  Instruction instr;
+  Memory memory;
+
+  initMemory(&memory);
 
   unsigned int binaryInstr = 0x21280096; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr, &instr);
+  addInstruction(&memory, binaryInstr);
 
-  Instruction instr2;
   unsigned int binaryInstr2 = 0x310a004b; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr2, &instr2);
+  addInstruction(&memory, binaryInstr2);
 
-  Instruction instr3;
   unsigned int binaryInstr3 = 0x010a5821; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr3, &instr3);
+  addInstruction(&memory, binaryInstr3);
 
-  Instruction instr4;
   unsigned int binaryInstr4 = 0x010a6023; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr4, &instr4);
+  addInstruction(&memory, binaryInstr4);
 
-  Instruction instr5;
   unsigned int binaryInstr5 = 0x014b4819; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr5, &instr5);
+  addInstruction(&memory, binaryInstr5);
 
-  Instruction instr6;
   unsigned int binaryInstr6 = 0x016a001b; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr6, &instr6);
+  addInstruction(&memory, binaryInstr6);
 
-  Instruction instr7;
   unsigned int binaryInstr7 = 0x00007012; // Exemplo de instrução R (add $8, $9, $10)
-  decodeInstruction(binaryInstr7, &instr7);
+  addInstruction(&memory, binaryInstr7);
 
-  Instruction instr8;
   unsigned int binaryInstr8 = 0x00006810; // Exemplo de instrução R (mfhi $13, $0, $0)
-  decodeInstruction(binaryInstr8, &instr8);
+  addInstruction(&memory, binaryInstr8);
 
-  executeInstruction(instr, &cpu);
-  executeInstruction(instr2, &cpu);
-  executeInstruction(instr3, &cpu);
-  executeInstruction(instr4, &cpu);
-  executeInstruction(instr5, &cpu);
-  executeInstruction(instr6, &cpu);
-  executeInstruction(instr7, &cpu);
-  executeInstruction(instr8, &cpu);
+  // printf("sizeee: %d\n", memory.size);
+  // int i;
+  // for (i = 0; i < memory.size; i++)
+  // {
+  //   printf("mem %d: %d - %d\n", i, memory.ram[i].location, memory.ram[i].code);
+  // }
+
+  executeAllInstructions(&memory, &cpu);
+
+  // executeInstruction(instr, &cpu);
+  // executeInstruction(instr2, &cpu);
+  // executeInstruction(instr3, &cpu);
+  // executeInstruction(instr4, &cpu);
+  // executeInstruction(instr5, &cpu);
+  // executeInstruction(instr6, &cpu);
+  // executeInstruction(instr7, &cpu);
+  // executeInstruction(instr8, &cpu);
 
   printRegisters(cpu);
 
   return 0;
+}
+
+void initMemory(Memory *memory)
+{
+  memory->nextAvailableAddress = 0;
+  memory->size = 0;
+}
+
+void addInstruction(Memory *memory, unsigned int binary)
+{
+  InstructionLocation newInstruction;
+  newInstruction.code = binary;
+  newInstruction.location = memory->nextAvailableAddress;
+
+  memory->ram[memory->size] = newInstruction;
+
+  memory->nextAvailableAddress += 4;
+  memory->size += 1;
+}
+
+void executeAllInstructions(Memory *memory, Processor *cpu)
+{
+
+  printf("pogss: %d - %d\n\n", cpu->Pc, memory->nextAvailableAddress);
+  if (cpu->Pc >= memory->nextAvailableAddress)
+    return;
+
+  // printf("pingas");
+
+  int i = 0;
+  for (i = 0; i < memory->size; i++)
+  {
+    if (cpu->Pc == memory->ram[i].location)
+    {
+      printf("uéeeeee: %d %d\n", cpu->Pc, memory->ram[i].location);
+      Instruction instr;
+      decodeInstruction(memory->ram[i].code, &instr);
+      executeInstruction(instr, cpu);
+      break;
+    }
+  }
+
+  executeAllInstructions(memory, cpu);
 }
 
 void decodeInstruction(unsigned int binary, Instruction *instr)
@@ -105,6 +155,16 @@ void decodeInstruction(unsigned int binary, Instruction *instr)
   instr->funct = binary & 0x3F;          // Últimos 6 bits
   instr->immediate = binary & 0xFFFF;    // Últimos 16 bits (se I-type)
   instr->address = binary & 0x3FFFFFF;   // Últimos 26 bits (se J-type)
+
+  // printf("addr: %d\n", instr);
+  // printf("opcode: %d\n", instr->opcode);
+  // printf("rs: %d\n", instr->rs);
+  // printf("rt: %d\n", instr->rt);
+  // printf("rd: %d\n", instr->rd);
+  // printf("shamt: %d\n", instr->shamt);
+  // printf("funct: %d\n", instr->funct);
+  // printf("immediate: %d\n", instr->immediate);
+  // printf("address: %d\n", instr->address);
 }
 
 void executeInstruction(Instruction instr, Processor *cpu)
@@ -127,7 +187,7 @@ void executeInstruction(Instruction instr, Processor *cpu)
 void executeRType(Instruction instr, Processor *cpu)
 {
 
-  printf("hmmmm: %d\n", instr.funct);
+  // printf("hmmmm: %d\n", instr.funct);
   if (instr.funct == 33)
   {
     cpu->registers[instr.rd] = cpu->registers[instr.rs] + cpu->registers[instr.rt];
@@ -156,10 +216,13 @@ void executeRType(Instruction instr, Processor *cpu)
   {
     cpu->registers[instr.rd] = cpu->Lo;
   }
+
+  cpu->Pc += 4;
 }
 
 void executeIType(Instruction instr, Processor *cpu)
 {
+  printf("foii?: %d\n", instr.opcode);
   if (instr.opcode == 8)
   {
     cpu->registers[instr.rt] = cpu->registers[instr.rs] + instr.immediate;
@@ -168,11 +231,13 @@ void executeIType(Instruction instr, Processor *cpu)
   {
     cpu->registers[instr.rt] = cpu->registers[instr.rs] & instr.immediate;
   }
+  cpu->Pc += 4;
 }
 
 void executeJType(Instruction instr, Processor *cpu)
 {
   printf("executeJType\n");
+  cpu->Pc += 4;
 }
 
 void updateRegisters(Instruction instr, Processor *cpu)
@@ -196,6 +261,7 @@ void printRegisters(Processor cpu)
   int i = 0;
   for (i = 0; i < NUM_REGISTERS; i++)
   {
+    // if (cpu.registers[i] )
     printf("$%d - %s: %d\n", i, registers[i], cpu.registers[i]);
   }
 }
